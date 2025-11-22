@@ -315,10 +315,33 @@ function moveGhosts() {
                 ghost.dir = 0; // Stuck?
             }
         } else {
-            // If scared, move randomly. If chase, maybe target pacman (not implemented fully)
-            // For now, random is fine for both, maybe prefer away from pacman if scared
-            const randIndex = Math.floor(Math.random() * possibleDirs.length);
-            ghost.dir = possibleDirs[randIndex];
+            // AI Decision Making
+            if (ghost.type === 'chase' && powerModeTime === 0) {
+                // Red Ghost: Chase Pacman (Shortest Path / Greedy Best-First)
+                // Pick the direction that minimizes distance to Pacman
+                let bestDir = possibleDirs[0];
+                let minDistance = Infinity;
+
+                possibleDirs.forEach(d => {
+                    const { dx, dy } = getDxDy(d);
+                    const nextX = ghost.x + dx;
+                    const nextY = ghost.y + dy;
+
+                    // Euclidean distance squared is sufficient for comparison
+                    const dist = Math.pow(nextX - pacman.x, 2) + Math.pow(nextY - pacman.y, 2);
+
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        bestDir = d;
+                    }
+                });
+                ghost.dir = bestDir;
+            } else {
+                // Other Ghosts or Scared Mode: Random Movement
+                // If scared, maybe prefer away from pacman? For now random is fine as per request.
+                const randIndex = Math.floor(Math.random() * possibleDirs.length);
+                ghost.dir = possibleDirs[randIndex];
+            }
         }
 
         // Move
