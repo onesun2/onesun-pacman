@@ -142,9 +142,14 @@ document.addEventListener('keyup', (e) => {
 });
 
 // Mobile Button Handling
-const mobileBtn = document.getElementById('mobile-start-button');
-mobileBtn.addEventListener('click', () => {
-    handleInput('Space');
+const mobileButtons = document.querySelectorAll('.mobile-start-button');
+
+mobileButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent focus issues
+        console.log('Mobile button clicked');
+        handleInput('Space');
+    });
 });
 
 function handleInput(code) {
@@ -167,7 +172,7 @@ function handleInput(code) {
 function startGame() {
     gameState = 'PLAYING';
     document.getElementById('start-screen').classList.remove('active');
-    mobileBtn.style.display = 'none'; // Hide button
+    // Buttons are hidden automatically because they are inside the screen div
     loadStage(currentStage);
     gameLoop();
 }
@@ -401,7 +406,6 @@ function handleDeath() {
         gameState = 'GAMEOVER';
         document.getElementById('final-score').innerText = score;
         document.getElementById('game-over-screen').classList.add('active');
-        mobileBtn.style.display = 'block'; // Show button
     } else {
         // Reset positions
         pacman = { x: 13, y: 23, dir: 0, nextDir: 0 };
@@ -436,7 +440,6 @@ function checkWinCondition() {
         } else {
             gameState = 'VICTORY';
             document.getElementById('victory-screen').classList.add('active');
-            mobileBtn.style.display = 'block'; // Show button
         }
     }
 }
@@ -543,16 +546,3 @@ function gameLoop() {
 // Need to load map to draw it initially for background
 currentMap = map1.map(row => [...row]);
 draw();
-
-// Mobile Button Logic
-document.addEventListener('DOMContentLoaded', () => {
-    const mobileButtons = document.querySelectorAll('.mobile-start-button');
-    
-    mobileButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            // handleInput('Space')를 호출하여 Spacebar 입력과 동일하게 처리
-            handleInput('Space'); 
-        });
-    });
-});

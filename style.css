@@ -89,11 +89,8 @@ p {
     }
 }
 
-#mobile-start-button {
-    position: absolute;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
+.mobile-start-button {
+    margin-top: 20px;
     padding: 15px 30px;
     font-family: 'Press Start 2P', cursive;
     font-size: 16px;
@@ -103,12 +100,10 @@ p {
     border-radius: 5px;
     box-shadow: 0 0 10px var(--neon-pink);
     cursor: pointer;
-    display: none;
-    /* Hidden by default */
     z-index: 100;
 }
 
-#mobile-start-button:active {
+.mobile-start-button:active {
     background-color: #d000d0;
-    transform: translateX(-50%) scale(0.95);
+    transform: scale(0.95);
 }
