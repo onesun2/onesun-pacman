@@ -543,16 +543,3 @@ function gameLoop() {
 // Need to load map to draw it initially for background
 currentMap = map1.map(row => [...row]);
 draw();
-
-// Mobile Button Logic
-document.addEventListener('DOMContentLoaded', () => {
-    const mobileButtons = document.querySelectorAll('.mobile-start-button');
-    
-    mobileButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            // handleInput('Space')를 호출하여 Spacebar 입력과 동일하게 처리
-            handleInput('Space'); 
-        });
-    });
-});
