@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
-
 <body>
     <div id="game-container">
         <div id="ui-layer">
@@ -17,17 +15,20 @@
             <div id="stage-board">STAGE: <span id="stage">1</span></div>
         </div>
         <canvas id="gameCanvas" width="448" height="496"></canvas>
+        <!-- START SCREEN -->
         <div id="start-screen" class="screen active">
             <h1>NEON PACMAN</h1>
             <p>PRESS SPACE TO START</p>
             <button class="mobile-start-button">START GAME</button>
         </div>
+        <!-- GAME OVER SCREEN -->
         <div id="game-over-screen" class="screen">
             <h1>GAME OVER</h1>
             <p>SCORE: <span id="final-score">0</span></p>
             <p>PRESS SPACE TO RESTART</p>
             <button class="mobile-start-button">RESTART</button>
         </div>
+        <!-- VICTORY SCREEN -->
         <div id="victory-screen" class="screen">
             <h1>YOU WIN!</h1>
             <p>ALL STAGES CLEARED</p>
@@ -35,10 +36,7 @@
             <button class="mobile-start-button">PLAY AGAIN</button>
         </div>
     </div>
-    <script src="script.js?v=2"></script>
+    <script src="script.js"></script>
 </body>
-
 </html>
-</body>
 
-</html>
