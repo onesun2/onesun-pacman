@@ -109,6 +109,7 @@ const map3 = [
 
 // Fill remaining rows to 31 if needed, or adjust logic. 
 // Standard Pacman is 28x31. My map above is 26 rows. I'll pad it or stretch it.
+// Let's just use the map as is and center it or add rows.
 // Adding 5 more rows of empty/walls to make it 31.
 while (map1.length < ROWS) {
     map1.push(new Array(COLS).fill(0));
@@ -140,6 +141,17 @@ document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
 });
 
+// Mobile Button Handling
+const mobileButtons = document.querySelectorAll('.mobile-start-button');
+
+mobileButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent focus issues
+        console.log('Mobile button clicked');
+        handleInput('Space');
+    });
+});
+
 function handleInput(code) {
     if (gameState === 'START' && code === 'Space') {
         startGame();
@@ -160,8 +172,7 @@ function handleInput(code) {
 function startGame() {
     gameState = 'PLAYING';
     document.getElementById('start-screen').classList.remove('active');
-    document.getElementById('game-over-screen').classList.remove('active'); // Added to ensure game-over screen is hidden if we restart from there
-    document.getElementById('victory-screen').classList.remove('active'); // Added to ensure victory screen is hidden
+    // Buttons are hidden automatically because they are inside the screen div
     loadStage(currentStage);
     gameLoop();
 }
@@ -179,10 +190,10 @@ function loadStage(stage) {
 
     // Initialize ghosts
     ghosts = [
-        { x: 13, y: 11, color: 'red', dir: 3, type: 'chase', dead: false },
-        { x: 14, y: 11, color: 'pink', dir: 4, type: 'ambush', dead: false },
-        { x: 13, y: 13, color: 'cyan', dir: 1, type: 'random', dead: false },
-        { x: 14, y: 13, color: 'orange', dir: 2, type: 'random', dead: false }
+        { x: 13, y: 11, color: 'red', dir: 3, type: 'chase' },
+        { x: 14, y: 11, color: 'pink', dir: 4, type: 'ambush' },
+        { x: 13, y: 13, color: 'cyan', dir: 1, type: 'random' },
+        { x: 14, y: 13, color: 'orange', dir: 2, type: 'random' }
     ];
 }
 
@@ -275,154 +286,86 @@ function update() {
     // Ghosts move slower when scared
     const interval = powerModeTime > 0 ? GHOST_MOVE_INTERVAL * 1.5 : GHOST_MOVE_INTERVAL;
 
-    function findBestDirection(ghost, targetX, targetY) {
-        const possibleDirs = [];
-        let minDistSq = Infinity;
-        let bestDir = 0;
-
-        [1, 2, 3, 4].forEach(d => {
-            const reverseDir = ghost.dir === 1 ? 2 : ghost.dir === 2 ? 1 : ghost.dir === 3 ? 4 : 3;
-            if (d === reverseDir) return;
-
-            if (canMove(ghost.x, ghost.y, d)) {
-                possibleDirs.push(d);
-                const { dx, dy } = getDxDy(d);
-                const nextX = ghost.x + dx;
-                const nextY = ghost.y + dy;
-                
-                // Calculate distance squared to target
-                const distSq = (nextX - targetX) ** 2 + (nextY - targetY) ** 2;
-
-                if (distSq < minDistSq) {
-                    minDistSq = distSq;
-                    bestDir = d;
-                }
-            }
-        });
-
-        // If a clear best direction was found at an intersection
-        if (bestDir !== 0 && possibleDirs.length > 1) {
-            return bestDir;
-        }
-
-        // Otherwise, if only one option or stuck, choose from possibles or reverse
-        if (possibleDirs.length > 0) {
-            return possibleDirs[Math.floor(Math.random() * possibleDirs.length)];
-        }
-        
-        // Final fallback: Reverse
-        const reverseDir = ghost.dir === 1 ? 2 : ghost.dir === 2 ? 1 : ghost.dir === 3 ? 4 : 3;
-        return canMove(ghost.x, ghost.y, reverseDir) ? reverseDir : 0;
+    if (ghostMoveTimer >= interval) {
+        ghostMoveTimer = 0;
+        moveGhosts();
+        checkCollision();
     }
-
-
-    function findFleeDirection(ghost, targetX, targetY) {
-        const possibleDirs = [];
-        let maxDistSq = -1;
-        let bestDir = 0;
-
-        [1, 2, 3, 4].forEach(d => {
-            const reverseDir = ghost.dir === 1 ? 2 : ghost.dir === 2 ? 1 : ghost.dir === 3 ? 4 : 3;
-            if (d === reverseDir) return;
-
-            if (canMove(ghost.x, ghost.y, d)) {
-                possibleDirs.push(d);
-                const { dx, dy } = getDxDy(d);
-                const nextX = ghost.x + dx;
-                const nextY = ghost.y + dy;
-                
-                // Calculate distance squared to target
-                const distSq = (nextX - targetX) ** 2 + (nextY - targetY) ** 2;
-
-                if (distSq > maxDistSq) {
-                    maxDistSq = distSq;
-                    bestDir = d;
-                }
-            }
-        });
-
-        if (bestDir !== 0 && possibleDirs.length > 0) {
-            return bestDir;
-        }
-        
-        // Final fallback: Random or reverse
-        const reverseDir = ghost.dir === 1 ? 2 : ghost.dir === 2 ? 1 : ghost.dir === 3 ? 4 : 3;
-        return canMove(ghost.x, ghost.y, reverseDir) ? reverseDir : 0;
-    }
-
-
-    moveGhosts(findBestDirection, findFleeDirection);
-    checkCollision();
-    
-    // Legacy moveGhosts function merged into update
-    function moveGhosts(chaseLogic, fleeLogic) {
-        ghosts.forEach(ghost => {
-            if (ghost.dead) {
-                ghost.x = 13;
-                ghost.y = 11;
-                ghost.dead = false;
-                return;
-            }
-
-            let newDir = 0;
-            const isScared = powerModeTime > 0;
-
-            if (isScared) {
-                 // Flee logic: move away from Pacman
-                 newDir = fleeLogic(ghost, pacman.x, pacman.y);
-            } else if (ghost.type === 'chase') {
-                // Chase logic (Red Ghost)
-                newDir = chaseLogic(ghost, pacman.x, pacman.y);
-            } else {
-                // Default random movement for others (for now)
-                const possibleDirs = [];
-                [1, 2, 3, 4].forEach(d => {
-                    const reverseDir = ghost.dir === 1 ? 2 : ghost.dir === 2 ? 1 : ghost.dir === 3 ? 4 : 3;
-                    if (d !== reverseDir && canMove(ghost.x, ghost.y, d)) {
-                        possibleDirs.push(d);
-                    }
-                });
-
-                if (possibleDirs.length > 0) {
-                    newDir = possibleDirs[Math.floor(Math.random() * possibleDirs.length)];
-                } else {
-                    const reverseDir = ghost.dir === 1 ? 2 : ghost.dir === 2 ? 1 : ghost.dir === 3 ? 4 : 3;
-                    newDir = reverseDir;
-                }
-            }
-            
-            // Only change direction at intersections or if stuck
-            if (newDir !== 0) {
-                // Check if current spot is an intersection (more than 2 valid moves)
-                let validMovesCount = 0;
-                 [1, 2, 3, 4].forEach(d => {
-                    if (canMove(ghost.x, ghost.y, d)) {
-                        validMovesCount++;
-                    }
-                 });
-
-                 // Only change direction if it's an intersection (count > 2, usually) or if we are forced to
-                 if (validMovesCount > 2 || !canMove(ghost.x, ghost.y, ghost.dir)) {
-                    ghost.dir = newDir;
-                 }
-            }
-
-            // Move
-            const { dx, dy } = getDxDy(ghost.dir);
-            ghost.x += dx;
-            ghost.y += dy;
-
-            // Tunneling
-            if (ghost.x < 0) ghost.x = COLS - 1;
-            else if (ghost.x >= COLS) ghost.x = 0;
-        });
-    }
-    // End of legacy moveGhosts function
-    
-    
 }
 
-// Legacy moveGhosts function removed/merged into update
+function moveGhosts() {
+    ghosts.forEach(ghost => {
+        if (ghost.dead) {
+            // Respawn logic (simple: stay in house or return)
+            // For simplicity, just respawn after a while or stay put
+            // Let's just make them not move if dead for a bit, then respawn
+            // Implementing full return-to-base is complex, let's just respawn them at start
+            ghost.x = 13;
+            ghost.y = 11;
+            ghost.dead = false;
+            return;
+        }
+
+        // Simple AI: Keep moving, change direction at intersections or walls
+        const possibleDirs = [];
+
+        // Check all 4 directions
+        [1, 2, 3, 4].forEach(d => {
+            // Don't reverse direction immediately unless stuck
+            const reverseDir = ghost.dir === 1 ? 2 : ghost.dir === 2 ? 1 : ghost.dir === 3 ? 4 : 3;
+            if (d !== reverseDir && canMove(ghost.x, ghost.y, d)) {
+                possibleDirs.push(d);
+            }
+        });
+
+        if (possibleDirs.length === 0) {
+            // Dead end, must reverse
+            const reverseDir = ghost.dir === 1 ? 2 : ghost.dir === 2 ? 1 : ghost.dir === 3 ? 4 : 3;
+            if (canMove(ghost.x, ghost.y, reverseDir)) {
+                ghost.dir = reverseDir;
+            } else {
+                ghost.dir = 0; // Stuck?
+            }
+        } else {
+            // AI Decision Making
+            if (ghost.type === 'chase' && powerModeTime === 0) {
+                // Red Ghost: Chase Pacman (Shortest Path / Greedy Best-First)
+                // Pick the direction that minimizes distance to Pacman
+                let bestDir = possibleDirs[0];
+                let minDistance = Infinity;
+
+                possibleDirs.forEach(d => {
+                    const { dx, dy } = getDxDy(d);
+                    const nextX = ghost.x + dx;
+                    const nextY = ghost.y + dy;
+
+                    // Euclidean distance squared is sufficient for comparison
+                    const dist = Math.pow(nextX - pacman.x, 2) + Math.pow(nextY - pacman.y, 2);
+
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        bestDir = d;
+                    }
+                });
+                ghost.dir = bestDir;
+            } else {
+                // Other Ghosts or Scared Mode: Random Movement
+                // If scared, maybe prefer away from pacman? For now random is fine as per request.
+                const randIndex = Math.floor(Math.random() * possibleDirs.length);
+                ghost.dir = possibleDirs[randIndex];
+            }
+        }
+
+        // Move
+        const { dx, dy } = getDxDy(ghost.dir);
+        ghost.x += dx;
+        ghost.y += dy;
+
+        // Tunneling
+        if (ghost.x < 0) ghost.x = COLS - 1;
+        else if (ghost.x >= COLS) ghost.x = 0;
+    });
+}
 
 function checkCollision() {
     // Check Dot Collision
@@ -603,24 +546,3 @@ function gameLoop() {
 // Need to load map to draw it initially for background
 currentMap = map1.map(row => [...row]);
 draw();
-
-// -------------------------------------------------------------------
-// START OF MOBILE BUTTON LOGIC: Ensures button clicks work on touch devices
-// -------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', () => {
-    // 'mobile-start-button' 클래스를 가진 모든 버튼을 찾습니다.
-    const mobileButtons = document.querySelectorAll('.mobile-start-button');
-    
-    mobileButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            // handleInput('Space')를 호출하여 Spacebar 입력과 동일하게 처리
-            // 이는 START, GAMEOVER, VICTORY 상태 모두에서 작동합니다.
-            handleInput('Space'); 
-        });
-    });
-});
-// -------------------------------------------------------------------
-// END OF MOBILE BUTTON LOGIC
-// -------------------------------------------------------------------
-
