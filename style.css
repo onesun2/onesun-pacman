@@ -78,6 +78,37 @@ p {
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+#mobile-start-button {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    background-color: var(--neon-pink);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 0 10px var(--neon-pink);
+    cursor: pointer;
+    display: none;
+    /* Hidden by default */
+    z-index: 100;
+}
+
+#mobile-start-button:active {
+    background-color: #d000d0;
+    transform: translateX(-50%) scale(0.95);
 }

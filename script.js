@@ -141,6 +141,12 @@ document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
 });
 
+// Mobile Button Handling
+const mobileBtn = document.getElementById('mobile-start-button');
+mobileBtn.addEventListener('click', () => {
+    handleInput('Space');
+});
+
 function handleInput(code) {
     if (gameState === 'START' && code === 'Space') {
         startGame();
@@ -161,6 +167,7 @@ function handleInput(code) {
 function startGame() {
     gameState = 'PLAYING';
     document.getElementById('start-screen').classList.remove('active');
+    mobileBtn.style.display = 'none'; // Hide button
     loadStage(currentStage);
     gameLoop();
 }
@@ -394,6 +401,7 @@ function handleDeath() {
         gameState = 'GAMEOVER';
         document.getElementById('final-score').innerText = score;
         document.getElementById('game-over-screen').classList.add('active');
+        mobileBtn.style.display = 'block'; // Show button
     } else {
         // Reset positions
         pacman = { x: 13, y: 23, dir: 0, nextDir: 0 };
@@ -428,6 +436,7 @@ function checkWinCondition() {
         } else {
             gameState = 'VICTORY';
             document.getElementById('victory-screen').classList.add('active');
+            mobileBtn.style.display = 'block'; // Show button
         }
     }
 }
